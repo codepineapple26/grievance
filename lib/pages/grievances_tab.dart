@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'models/grievance.dart';
+import '../models/grievance.dart';
 
 class GrievancesTab extends StatefulWidget {
   const GrievancesTab({super.key, required this.grievances});
