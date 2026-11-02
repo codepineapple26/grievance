@@ -128,7 +128,7 @@ class _GrievanceRegistrationPageState
             '${user.id}/${DateTime.now().microsecondsSinceEpoch}_$safeName';
 
         await _supabase.storage
-            .from('grievance-documents')
+            .from('grievance-files')
             .uploadBinary(
               path,
               file.bytes!,
