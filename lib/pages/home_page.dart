@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'lib/models/grievance.dart';
-import 'lib/models/user_profile.dart';
-import 'lib/widgets/app_bottom_nav.dart';
-import 'lib/pages/dashboard_tab.dart';
-import 'lib/pages/grievances_tab.dart';
-import 'lib/pages/profile_tab.dart';
+import 'models/grievance.dart';
+import 'models/user_profile.dart';
+import 'widgets/app_bottom_nav.dart';
+import 'pages/dashboard_tab.dart';
+import 'pages/grievances_tab.dart';
+import 'pages/profile_tab.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.userName});
