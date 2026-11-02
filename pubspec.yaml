@@ -1,2 +1,5 @@
+environment:
+  sdk: ^3.13.0
+
 dependencies:
   supabase_flutter: ^2.0.0
