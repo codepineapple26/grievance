@@ -25,7 +25,6 @@ class _GrievanceRegistrationPageState
   String _locationType = 'Other Address';
   List<PlatformFile> _files = [];
 
-  // Location options and selections.
   List<Map<String, dynamic>> districts = [];
   List<Map<String, dynamic>> taluks = [];
   List<Map<String, dynamic>> gramPanchayats = [];
@@ -41,7 +40,6 @@ class _GrievanceRegistrationPageState
   String? selectedGramPanchayatName;
   String? selectedVillageName;
 
-  // Grievance options and selections.
   List<Map<String, dynamic>> departments = [];
   List<Map<String, dynamic>> subDepartments = [];
   List<Map<String, dynamic>> services = [];
@@ -134,7 +132,6 @@ class _GrievanceRegistrationPageState
     return rows.firstWhere((row) => row['id'] == id)['name'] as String;
   }
 
-  
   Future<void> _onDistrictChanged(int? id) async {
     if (id == null) return;
     final name = _nameFor(districts, id);
@@ -227,8 +224,7 @@ class _GrievanceRegistrationPageState
       grievanceSubCategories = [];
     });
 
-    final rows =
-        await loadOptions('sub_departments', 'department_id', id);
+    final rows = await loadOptions('sub_departments', 'department_id', id);
     if (!mounted) return;
     setState(() => subDepartments = rows);
   }
@@ -297,8 +293,7 @@ class _GrievanceRegistrationPageState
       grievanceSubCategories = [];
     });
 
-    final rows =
-        await loadOptions('grievance_categories', 'grievance_type_id', id);
+    final rows = await loadOptions('grievance_categories', 'grievance_type_id', id);
     if (!mounted) return;
     setState(() => grievanceCategories = rows);
   }
@@ -328,8 +323,7 @@ class _GrievanceRegistrationPageState
     if (id == null) return;
     setState(() {
       selectedGrievanceSubCategoryId = id;
-      selectedGrievanceSubCategoryName =
-          _nameFor(grievanceSubCategories, id);
+      selectedGrievanceSubCategoryName = _nameFor(grievanceSubCategories, id);
     });
   }
 
@@ -374,43 +368,35 @@ class _GrievanceRegistrationPageState
   }
 
   Future<void> _pickFiles() async {
-  final pickedFiles = await FilePicker.pickFiles(
-    type: FileType.custom,
-    allowedExtensions: const ['pdf', 'png', 'jpg', 'jpeg'],
-  );
+    final pickedFiles = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['pdf', 'png', 'jpg', 'jpeg'],
+    );
 
-  if (pickedFiles.isEmpty) return; // User canceled.
+    if (pickedFiles == null || pickedFiles.files.isEmpty) return;
 
-  final List<PlatformFile> selectedFiles = [
-    ..._files,
-    ...pickedFiles,
-  ];
+    final List<PlatformFile> selectedFiles = [
+      ..._files,
+      ...pickedFiles.files,
+    ];
 
-  var totalBytes = 0;
-  for (final file in selectedFiles) {
-    final size = file.lengthSync() ?? await file.length();
+    var totalBytes = 0;
+    for (final file in selectedFiles) {
+      totalBytes += file.size;
+    }
 
-    if (size == null) {
-      _message('Could not read one of the selected files. Please try again.');
+    if (totalBytes > _maxBytes) {
+      _message('All selected documents together must be 20 MB or less.');
       return;
     }
 
-    totalBytes += size;
+    setState(() => _files = selectedFiles);
   }
-
-  if (totalBytes > _maxBytes) {
-    _message('All selected documents together must be 20 MB or less.');
-    return;
-  }
-
-  setState(() => _files = selectedFiles);
-}
 
   String _formatFileSize(PlatformFile file) {
-  final size = file.lengthSync();
-  if (size == null) return 'Size unavailable';
-  return '${(size / (1024 * 1024)).toStringAsFixed(2)} MB';
-}
+    final size = file.size;
+    return '${(size / (1024 * 1024)).toStringAsFixed(2)} MB';
+  }
 
   String _contentType(String name) {
     final lower = name.toLowerCase();
@@ -437,8 +423,7 @@ class _GrievanceRegistrationPageState
     try {
       final locationText = [
         'Type: $_locationType',
-        if (selectedDistrictName != null)
-          'District: $selectedDistrictName',
+        if (selectedDistrictName != null) 'District: $selectedDistrictName',
         if (selectedTalukName != null) 'Taluk: $selectedTalukName',
         if (selectedGramPanchayatName != null)
           'Gram Panchayat: $selectedGramPanchayatName',
@@ -448,8 +433,7 @@ class _GrievanceRegistrationPageState
       final grievance = await _supabase
           .from('grievances')
           .insert({
-            'tracking_id':
-                'GRV-${DateTime.now().microsecondsSinceEpoch}',
+            'tracking_id': 'GRV-${DateTime.now().microsecondsSinceEpoch}',
             'user_id': user.id,
             'department_id': selectedDepartmentId,
             'sub_department_id': selectedSubDepartmentId,
@@ -482,14 +466,13 @@ class _GrievanceRegistrationPageState
         );
         final path =
             '${user.id}/${DateTime.now().microsecondsSinceEpoch}_$safeName';
+        final bytes = await file.readStream!.single;
 
-         final bytes = await file.readAsBytes();,
-        await Supabase.instance.client.storage
-    .from('grievance-files')
-    .uploadBinary(objectPath, bytes);,
-             
-              fileOptions: FileOptions(contentType: _contentType(file.name)),
-            );
+        await _supabase.storage.from('grievance-files').uploadBinary(
+          path,
+          bytes,
+          fileOptions: FileOptions(contentType: _contentType(file.name)),
+        );
 
         uploadedPaths.add(path);
         attachmentRows.add({
@@ -527,9 +510,7 @@ class _GrievanceRegistrationPageState
     } catch (error) {
       if (uploadedPaths.isNotEmpty) {
         try {
-          await _supabase.storage
-              .from('grievance-files')
-              .remove(uploadedPaths);
+          await _supabase.storage.from('grievance-files').remove(uploadedPaths);
         } catch (_) {
           // Keep the original submission error as the message.
         }
