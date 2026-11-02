@@ -67,6 +67,11 @@ class _GrievanceRegistrationPageState
     _loadInitialOptions();
   }
 
+Future<String> _formatFileSize(PlatformFile file) async {
+  final size = (await file.length()) ?? 0;
+  return '${(size / (1024 * 1024)).toStringAsFixed(2)} MB';
+}
+  
   Future<void> _loadInitialOptions() async {
     await Future.wait([
       _loadDistricts(),
@@ -381,9 +386,10 @@ class _GrievanceRegistrationPageState
   ];
 
   var totalBytes = 0;
-  for (final file in selectedFiles) {
-    totalBytes += await file.length();
-  }
+for (final file in selectedFiles) {
+  totalBytes += (await file.length()) ?? 0;
+}
+
 
   if (totalBytes > _maxBytes) {
     _message('All selected documents together must be 20 MB or less.');
@@ -392,23 +398,6 @@ class _GrievanceRegistrationPageState
 
   setState(() => _files = selectedFiles);
 }
-
-
-FutureBuilder<String>(
-  future: _formatFileSize(file),
-  builder: (context, snapshot) {
-    if (snapshot.connectionState == ConnectionState.waiting) {
-      return const Text('Calculating size…');
-    }
-
-    if (snapshot.hasError) {
-      return const Text('Size unavailable');
-    }
-
-    return Text(snapshot.data ?? 'Size unavailable');
-  },
-)
-
 
 
   String _contentType(String name) {
@@ -776,7 +765,15 @@ FutureBuilder<String>(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.insert_drive_file),
                 title: Text(file.name),
-                subtitle: Text(_formatFileSize(file)),
+                subtitle: FutureBuilder<String>(
+  future: _formatFileSize(file),
+  builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return const Text('Calculating size…');
+    }
+    return Text(snapshot.data ?? 'Size unavailable');
+  },
+),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete_outline),
                   onPressed: () {
