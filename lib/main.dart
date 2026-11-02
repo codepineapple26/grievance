@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-import 'pages/sign_in_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
-void main() {
-  runApp(const GrievanceApp());
-}
+import 'pages/sign_in_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,7 +10,7 @@ Future<void> main() async {
     publishableKey: 'sb_publishable_DCE0OoJWP5dIlHZIKZwKJQ_xD-Gje49',
   );
 
-  runApp(const MyApp());
+  runApp(const GrievanceApp());
 }
 
 final supabase = Supabase.instance.client;
