@@ -138,18 +138,28 @@ class _GrievanceRegistrationPageState
         attachmentPaths.add(path);
       }
 
-      await _supabase.from('grievances').insert({
-        'user_id': user.id,
-        'location_type': _locationType,
-        'district': _district.text.trim(),
-        'taluk': _taluk.text.trim(),
-        'gram_panchayat': _gramPanchayat.text.trim(),
-        'department': _department.text.trim(),
-        'category': _category.text.trim(),
-        'description': _description.text.trim(),
-        'attachments': attachmentPaths,
-        'status': 'submitted',
-      });
+     final location = [
+  'Type: $_locationType',
+  'District: ${_district.text.trim()}',
+  'Taluk: ${_taluk.text.trim()}',
+  if (_gramPanchayat.text.trim().isNotEmpty)
+    'Gram Panchayat: ${_gramPanchayat.text.trim()}',
+].join(', ');
+
+await _supabase.from('grievances').insert({
+  'tracking_id': 'GRV-${DateTime.now().microsecondsSinceEpoch}',
+  'user_id': user.id,
+  'department_id': null, // Replace with the selected department's integer ID.
+  'category': _category.text.trim(),
+  'subject': '${_department.text.trim()} - ${_category.text.trim()}',
+  'description': _description.text.trim(),
+  'location_text': location,
+  'latitude': null,
+  'longitude': null,
+  'status': 'submitted',
+  'attachments': attachmentPaths,
+});
+
 
       if (!mounted) return;
 
