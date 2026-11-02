@@ -134,6 +134,7 @@ class _GrievanceRegistrationPageState
     return rows.firstWhere((row) => row['id'] == id)['name'] as String;
   }
 
+  
   Future<void> _onDistrictChanged(int? id) async {
     if (id == null) return;
     final name = _nameFor(districts, id);
@@ -373,33 +374,43 @@ class _GrievanceRegistrationPageState
   }
 
   Future<void> _pickFiles() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: const ['pdf', 'png', 'jpg', 'jpeg'],
-      allowMultiple: true,
-      withData: true,
-    );
+  final pickedFiles = await FilePicker.pickFiles(
+    type: FileType.custom,
+    allowedExtensions: const ['pdf', 'png', 'jpg', 'jpeg'],
+  );
 
-    if (result == null) return;
+  if (pickedFiles.isEmpty) return; // User canceled.
 
-    final selectedFiles = [..._files, ...result.files];
-    final totalBytes = selectedFiles.fold<int>(
-      0,
-      (total, file) => total + file.size,
-    );
+  final List<PlatformFile> selectedFiles = [
+    ..._files,
+    ...pickedFiles,
+  ];
 
-    if (totalBytes > _maxBytes) {
-      _message('All selected documents together must be 20 MB or less.');
-      return;
-    }
+  var totalBytes = 0;
+  for (final file in selectedFiles) {
+    final size = file.lengthSync() ?? await file.length();
 
-    if (result.files.any((file) => file.bytes == null)) {
+    if (size == null) {
       _message('Could not read one of the selected files. Please try again.');
       return;
     }
 
-    setState(() => _files = selectedFiles);
+    totalBytes += size;
   }
+
+  if (totalBytes > _maxBytes) {
+    _message('All selected documents together must be 20 MB or less.');
+    return;
+  }
+
+  setState(() => _files = selectedFiles);
+}
+
+  String _formatFileSize(PlatformFile file) {
+  final size = file.lengthSync();
+  if (size == null) return 'Size unavailable';
+  return '${(size / (1024 * 1024)).toStringAsFixed(2)} MB';
+}
 
   String _contentType(String name) {
     final lower = name.toLowerCase();
@@ -474,7 +485,7 @@ class _GrievanceRegistrationPageState
 
         await _supabase.storage.from('grievance-files').uploadBinary(
               path,
-              file.bytes!,
+              final bytes = await file.readAsBytes();,
               fileOptions: FileOptions(contentType: _contentType(file.name)),
             );
 
@@ -770,9 +781,7 @@ class _GrievanceRegistrationPageState
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.insert_drive_file),
                 title: Text(file.name),
-                subtitle: Text(
-                  '${(file.size / (1024 * 1024)).toStringAsFixed(2)} MB',
-                ),
+                subtitle: Text(_formatFileSize(file)),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete_outline),
                   onPressed: () {
