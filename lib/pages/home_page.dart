@@ -5,6 +5,7 @@ import '../widgets/app_bottom_nav.dart';
 import 'dashboard_tab.dart';
 import 'grievances_tab.dart';
 import 'profile_tab.dart';
+import 'grievance_registration_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.userName});
@@ -64,9 +65,15 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final pages = [
       DashboardTab(
-        userName: _profile.name,
-        onNewGrievance: () {},
+  userName: userName,
+  onNewGrievance: () {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const GrievanceRegistrationPage(),
       ),
+    );
+  },
+),
       GrievancesTab(grievances: _grievances),
       const Center(child: Text('Alerts')),
       ProfileTab(
