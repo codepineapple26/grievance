@@ -368,34 +368,48 @@ class _GrievanceRegistrationPageState
   }
 
   Future<void> _pickFiles() async {
-    final pickedFiles = await FilePicker.platform.pickFiles(
-  type: FileType.custom,
-  allowedExtensions: const ['pdf', 'png', 'jpg', 'jpeg'],
-  withData: true,
-);
+  final pickedFiles = await FilePicker.pickFiles(
+    type: FileType.custom,
+    allowedExtensions: const ['pdf', 'png', 'jpg', 'jpeg'],
+  );
 
-if (pickedFiles == null || pickedFiles.files.isEmpty) return;
+  if (pickedFiles.isEmpty) return;
 
-final selectedFiles = [..._files, ...pickedFiles.files];
+  final List<PlatformFile> selectedFiles = [
+    ..._files,
+    ...pickedFiles,
+  ];
 
-final totalBytes = selectedFiles.fold<int>(
-  0,
-  (total, file) => total + (file.bytes?.length ?? 0),
-);
+  var totalBytes = 0;
+  for (final file in selectedFiles) {
+    totalBytes += await file.length();
+  }
 
-if (totalBytes > _maxBytes) {
-  _message('All selected documents together must be 20 MB or less.');
-  return;
+  if (totalBytes > _maxBytes) {
+    _message('All selected documents together must be 20 MB or less.');
+    return;
+  }
+
+  setState(() => _files = selectedFiles);
 }
 
-setState(() => _files = selectedFiles);
 
-  }
+FutureBuilder<String>(
+  future: _formatFileSize(file),
+  builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return const Text('Calculating size…');
+    }
 
-  String _formatFileSize(PlatformFile file) {
-    final size = file.size;
-    return '${(size / (1024 * 1024)).toStringAsFixed(2)} MB';
-  }
+    if (snapshot.hasError) {
+      return const Text('Size unavailable');
+    }
+
+    return Text(snapshot.data ?? 'Size unavailable');
+  },
+)
+
+
 
   String _contentType(String name) {
     final lower = name.toLowerCase();
@@ -465,8 +479,7 @@ setState(() => _files = selectedFiles);
         );
         final path =
             '${user.id}/${DateTime.now().microsecondsSinceEpoch}_$safeName';
-        final bytes = await file.readStream!.single;
-
+        final bytes = await file.readAsBytes();
         await _supabase.storage.from('grievance-files').uploadBinary(
           path,
           bytes,
