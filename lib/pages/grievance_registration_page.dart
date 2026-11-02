@@ -28,6 +28,20 @@ class _GrievanceRegistrationPageState
   bool _submitting = false;
   String _locationType = 'Other Address';
   List<PlatformFile> _files = [];
+  
+   List<Map<String, dynamic>> departments = [];
+  List<Map<String, dynamic>> subDepartments = [];
+  List<Map<String, dynamic>> services = [];
+  List<Map<String, dynamic>> grievanceTypes = [];
+  List<Map<String, dynamic>> grievanceCategories = [];
+  List<Map<String, dynamic>> grievanceSubCategories = [];
+
+  int? selectedDepartmentId;
+  int? selectedSubDepartmentId;
+  int? selectedServiceId;
+  int? selectedGrievanceTypeId;
+  int? selectedGrievanceCategoryId;
+  int? selectedGrievanceSubCategoryId;
 
   @override
   void dispose() {
@@ -300,29 +314,191 @@ await _supabase.from('grievances').insert({
           ],
         );
 
-      case 2:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Grievance Information',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            const Text('Select the department and describe your category.'),
-            const SizedBox(height: 16),
-            _textField(
-              _category,
-              'Search for a grievance *',
-              hint: 'Enter grievance category',
-            ),
-            _textField(
-              _department,
-              'Department *',
-              hint: 'Enter department',
-            ),
-          ],
-        );
+case 2:
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        'Grievance Information',
+        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 12),
+      const Text('Select the relevant department and grievance details.'),
+      const SizedBox(height: 16),
+
+      // Department
+      DropdownButtonFormField<int>(
+        value: selectedDepartmentId,
+        decoration: const InputDecoration(labelText: 'Department *'),
+        items: departments.map((row) {
+          return DropdownMenuItem<int>(
+            value: row['id'] as int,
+            child: Text(row['name'] as String),
+          );
+        }).toList(),
+        onChanged: (id) async {
+          if (id == null) return;
+          setState(() {
+            selectedDepartmentId = id;
+            selectedSubDepartmentId = null;
+            selectedServiceId = null;
+            selectedGrievanceTypeId = null;
+            selectedGrievanceCategoryId = null;
+            selectedGrievanceSubCategoryId = null;
+            subDepartments = [];
+            services = [];
+            grievanceTypes = [];
+            grievanceCategories = [];
+            grievanceSubCategories = [];
+          });
+          final rows = await loadOptions('sub_departments', 'department_id', id);
+          if (!mounted) return;
+          setState(() => subDepartments = rows);
+        },
+      ),
+
+      if (selectedDepartmentId != null) ...[
+        const SizedBox(height: 12),
+        DropdownButtonFormField<int>(
+          value: selectedSubDepartmentId,
+          decoration: const InputDecoration(labelText: 'Sub Department *'),
+          items: subDepartments.map((row) {
+            return DropdownMenuItem<int>(
+              value: row['id'] as int,
+              child: Text(row['name'] as String),
+            );
+          }).toList(),
+          onChanged: (id) async {
+            if (id == null) return;
+            setState(() {
+              selectedSubDepartmentId = id;
+              selectedServiceId = null;
+              selectedGrievanceTypeId = null;
+              selectedGrievanceCategoryId = null;
+              selectedGrievanceSubCategoryId = null;
+              services = [];
+              grievanceTypes = [];
+              grievanceCategories = [];
+              grievanceSubCategories = [];
+            });
+            final rows = await loadOptions('services', 'sub_department_id', id);
+            if (!mounted) return;
+            setState(() => services = rows);
+          },
+        ),
+      ],
+
+      if (selectedSubDepartmentId != null) ...[
+        const SizedBox(height: 12),
+        DropdownButtonFormField<int>(
+          value: selectedServiceId,
+          decoration: const InputDecoration(labelText: 'Service *'),
+          items: services.map((row) {
+            return DropdownMenuItem<int>(
+              value: row['id'] as int,
+              child: Text(row['name'] as String),
+            );
+          }).toList(),
+          onChanged: (id) async {
+            if (id == null) return;
+            setState(() {
+              selectedServiceId = id;
+              selectedGrievanceTypeId = null;
+              selectedGrievanceCategoryId = null;
+              selectedGrievanceSubCategoryId = null;
+              grievanceTypes = [];
+              grievanceCategories = [];
+              grievanceSubCategories = [];
+            });
+            final rows = await loadOptions('grievance_types', 'service_id', id);
+            if (!mounted) return;
+            setState(() => grievanceTypes = rows);
+          },
+        ),
+      ],
+
+      if (selectedServiceId != null) ...[
+        const SizedBox(height: 12),
+        DropdownButtonFormField<int>(
+          value: selectedGrievanceTypeId,
+          decoration: const InputDecoration(labelText: 'Grievance *'),
+          items: grievanceTypes.map((row) {
+            return DropdownMenuItem<int>(
+              value: row['id'] as int,
+              child: Text(row['name'] as String),
+            );
+          }).toList(),
+          onChanged: (id) async {
+            if (id == null) return;
+            setState(() {
+              selectedGrievanceTypeId = id;
+              selectedGrievanceCategoryId = null;
+              selectedGrievanceSubCategoryId = null;
+              grievanceCategories = [];
+              grievanceSubCategories = [];
+            });
+            final rows = await loadOptions(
+              'grievance_categories',
+              'grievance_type_id',
+              id,
+            );
+            if (!mounted) return;
+            setState(() => grievanceCategories = rows);
+          },
+        ),
+      ],
+
+      if (selectedGrievanceTypeId != null) ...[
+        const SizedBox(height: 12),
+        DropdownButtonFormField<int>(
+          value: selectedGrievanceCategoryId,
+          decoration: const InputDecoration(labelText: 'Grievance Category *'),
+          items: grievanceCategories.map((row) {
+            return DropdownMenuItem<int>(
+              value: row['id'] as int,
+              child: Text(row['name'] as String),
+            );
+          }).toList(),
+          onChanged: (id) async {
+            if (id == null) return;
+            setState(() {
+              selectedGrievanceCategoryId = id;
+              selectedGrievanceSubCategoryId = null;
+              grievanceSubCategories = [];
+            });
+            final rows = await loadOptions(
+              'grievance_sub_categories',
+              'grievance_category_id',
+              id,
+            );
+            if (!mounted) return;
+            setState(() => grievanceSubCategories = rows);
+          },
+        ),
+      ],
+
+      if (selectedGrievanceCategoryId != null) ...[
+        const SizedBox(height: 12),
+        DropdownButtonFormField<int>(
+          value: selectedGrievanceSubCategoryId,
+          decoration: const InputDecoration(
+            labelText: 'Grievance Subcategory *',
+          ),
+          items: grievanceSubCategories.map((row) {
+            return DropdownMenuItem<int>(
+              value: row['id'] as int,
+              child: Text(row['name'] as String),
+            );
+          }).toList(),
+          onChanged: (id) {
+            setState(() => selectedGrievanceSubCategoryId = id);
+          },
+        ),
+      ],
+    ],
+  );
+
+
 
       case 3:
         return Column(
