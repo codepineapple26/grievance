@@ -1,5 +1,19 @@
+name: citizen_grievance_app
+description: A citizen grievance application built with Flutter.
+publish_to: 'none'
+version: 1.0.0+1
+
 environment:
   sdk: ^3.13.0
 
 dependencies:
-  supabase_flutter: ^2.0.0
+  flutter:
+    sdk: flutter
+  supabase_flutter: ^2.18.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
