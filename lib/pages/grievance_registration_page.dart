@@ -67,6 +67,40 @@ class _GrievanceRegistrationPageState
     setState(() => _step++);
   }
 
+  Future<List<Map<String, dynamic>>> loadOptions(
+  String table,
+  String parentColumn,
+  int parentId,
+) async {
+  final rows = await Supabase.instance.client
+      .from(table)
+      .select('id, name')
+      .eq(parentColumn, parentId)
+      .eq('is_active', true)
+      .order('name');
+
+  return List<Map<String, dynamic>>.from(rows);
+}
+
+  final subDepartments =
+    await loadOptions('sub_departments', 'department_id', departmentId);
+
+final services =
+    await loadOptions('services', 'sub_department_id', subDepartmentId);
+
+final grievanceTypes =
+    await loadOptions('grievance_types', 'service_id', serviceId);
+
+final categories =
+    await loadOptions('grievance_categories', 'grievance_type_id', grievanceTypeId);
+
+final subCategories =
+    await loadOptions(
+      'grievance_sub_categories',
+      'grievance_category_id',
+      categoryId,
+    );
+
   Future<void> _pickFiles() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
