@@ -483,9 +483,11 @@ class _GrievanceRegistrationPageState
         final path =
             '${user.id}/${DateTime.now().microsecondsSinceEpoch}_$safeName';
 
-        await _supabase.storage.from('grievance-files').uploadBinary(
-              path,
-              final bytes = await file.readAsBytes();,
+         final bytes = await file.readAsBytes();,
+        await Supabase.instance.client.storage
+    .from('grievance-files')
+    .uploadBinary(objectPath, bytes);,
+             
               fileOptions: FileOptions(contentType: _contentType(file.name)),
             );
 
