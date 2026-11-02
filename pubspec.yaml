@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   supabase_flutter: ^2.18.3
+  file_picker: ^13.3.2
 
 dev_dependencies:
   flutter_test:
