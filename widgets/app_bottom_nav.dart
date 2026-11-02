@@ -10,28 +10,57 @@ class AppBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
+  static const _items = [
+    (Icons.home_outlined, Icons.home, 'Home'),
+    (Icons.list_alt_outlined, Icons.list_alt, 'Grievances'),
+    (Icons.notifications_none, Icons.notifications, 'Alerts'),
+    (Icons.person_outline, Icons.person, 'Profile'),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    return NavigationBar(
-      selectedIndex: currentIndex,
-      onDestinationSelected: onTap,
-      destinations: const [
-        NavigationDestination(
-          icon: Icon(Icons.home_outlined),
-          selectedIcon: Icon(Icons.home),
-          label: 'Home',
+    const purple = Color(0xFF7540B5);
+
+    return SafeArea(
+      top: false,
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: Color(0xFFEAEAEA))),
         ),
-        NavigationDestination(
-          icon: Icon(Icons.assignment_outlined),
-          selectedIcon: Icon(Icons.assignment),
-          label: 'My cases',
+        child: Row(
+          children: List.generate(_items.length, (index) {
+            final item = _items[index];
+            final selected = currentIndex == index;
+
+            return Expanded(
+              child: InkWell(
+                onTap: () => onTap(index),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        selected ? item.$2 : item.$1,
+                        color: selected ? purple : Colors.grey,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        item.$3,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: selected ? purple : Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
         ),
-        NavigationDestination(
-          icon: Icon(Icons.person_outline),
-          selectedIcon: Icon(Icons.person),
-          label: 'Profile',
-        ),
-      ],
+      ),
     );
   }
 }
