@@ -20,6 +20,18 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   late UserProfile _profile;
 
+  String get userName {
+  final user = Supabase.instance.client.auth.currentUser;
+  final metadata = user?.userMetadata;
+  final name = metadata?['full_name'] ?? metadata?['name'];
+
+  if (name is String && name.trim().isNotEmpty) {
+    return name;
+  }
+  return user?.email?.split('@').first ?? 'Citizen';
+}
+
+
   // Sample records for the UI. Replace these with records loaded for this user.
   final List<Grievance> _grievances = [
     Grievance(
