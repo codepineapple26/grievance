@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/user_profile.dart';
+import 'lib/models/user_profile.dart';
 
 class ProfileTab extends StatelessWidget {
   const ProfileTab({
