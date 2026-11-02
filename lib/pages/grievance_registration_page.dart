@@ -369,28 +369,27 @@ class _GrievanceRegistrationPageState
 
   Future<void> _pickFiles() async {
     final pickedFiles = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: const ['pdf', 'png', 'jpg', 'jpeg'],
-    );
+  type: FileType.custom,
+  allowedExtensions: const ['pdf', 'png', 'jpg', 'jpeg'],
+  withData: true,
+);
 
-    if (pickedFiles == null || pickedFiles.files.isEmpty) return;
+if (pickedFiles == null || pickedFiles.files.isEmpty) return;
 
-    final List<PlatformFile> selectedFiles = [
-      ..._files,
-      ...pickedFiles.files,
-    ];
+final selectedFiles = [..._files, ...pickedFiles.files];
 
-    var totalBytes = 0;
-    for (final file in selectedFiles) {
-      totalBytes += file.size;
-    }
+final totalBytes = selectedFiles.fold<int>(
+  0,
+  (total, file) => total + (file.bytes?.length ?? 0),
+);
 
-    if (totalBytes > _maxBytes) {
-      _message('All selected documents together must be 20 MB or less.');
-      return;
-    }
+if (totalBytes > _maxBytes) {
+  _message('All selected documents together must be 20 MB or less.');
+  return;
+}
 
-    setState(() => _files = selectedFiles);
+setState(() => _files = selectedFiles);
+
   }
 
   String _formatFileSize(PlatformFile file) {
