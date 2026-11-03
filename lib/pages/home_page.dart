@@ -26,16 +26,6 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   late UserProfile _profile;
 
-  Locale _locale = const Locale('en');
-
-  // 🛠️ FIX: Triggers both the local state and global layout update
-  void _setLocale(Locale locale) {
-    setState(() {
-      _locale = locale;
-    });
-    widget.onLocaleChanged(locale); // Clears unused warning by propagating update up
-  }
-
   String get userName {
     final user = Supabase.instance.client.auth.currentUser;
     final metadata = user?.userMetadata;
@@ -60,13 +50,12 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // 🛠️ Localization map helper based on the active _locale
-    final isKannada = _locale.languageCode == 'kn';
+    final isKannada = Localizations.localeOf(context).languageCode == 'kn';
 
     final pages = [
       DashboardTab(
         userName: userName,
-        onLocaleChanged: _setLocale, // 🛠️ FIX: Pass internal state modifier to clear warning
+        onLocaleChanged: widget.onLocaleChanged,
         onNewGrievance: () {
           Navigator.of(context).push(
             MaterialPageRoute<void>(
@@ -76,7 +65,7 @@ class _HomePageState extends State<HomePage> {
         },
       ),
       const GrievancesTab(),
-      Center(child: Text(isKannada ? 'ಎಚ್ಚರಿಕೆಗಳು' : 'Alerts')), // Dynamic language text
+      Center(child: Text(isKannada ? 'ಎಚ್ಚರಿಕೆಗಳು' : 'Alerts')),
       ProfileTab(
         profile: _profile,
         onSave: (updatedProfile) {
@@ -92,16 +81,15 @@ class _HomePageState extends State<HomePage> {
         elevation: 0,
         backgroundColor: Colors.white,
         actions: [
-          // Language switcher button inside the AppBar actions row
           PopupMenuButton<Locale>(
             icon: const Icon(Icons.language, color: Color(0xFF174A8B)),
-            onSelected: _setLocale,
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<Locale>>[
-              const PopupMenuItem<Locale>(
+            onSelected: widget.onLocaleChanged,
+            itemBuilder: (context) => const [
+              PopupMenuItem(
                 value: Locale('en'),
                 child: Text('English'),
               ),
-              const PopupMenuItem<Locale>(
+              PopupMenuItem(
                 value: Locale('kn'),
                 child: Text('ಕನ್ನಡ (Kannada)'),
               ),
