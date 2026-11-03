@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:citizen_grievance_app/l10n/app_localizations.dart';
 
 import '../models/user_profile.dart';
 import '../widgets/app_bottom_nav.dart';
