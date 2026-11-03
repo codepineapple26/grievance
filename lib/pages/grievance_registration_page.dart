@@ -83,7 +83,7 @@ class _GrievanceRegistrationPageState
 
   Future<String> _formatFileSize(PlatformFile file) async {
     final size = await file.length();
-    return '${(size / (1024 * 1024)).toStringAsFixed(2)} MB';
+    return '${((size ?? 0) / (1024 * 1024)).toStringAsFixed(2)} MB';
   }
 
   Future<void> _loadInitialOptions() async {
@@ -372,7 +372,13 @@ class _GrievanceRegistrationPageState
 
       var totalBytes = 0;
       for (final file in selectedFiles) {
-        totalBytes += await file.length();
+
+final int? length = await file.length();
+if (length != null) {
+  totalBytes += length;
+}
+
+        
       }
 
       if (totalBytes > _maxBytes) {
