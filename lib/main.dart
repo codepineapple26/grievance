@@ -4,7 +4,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'l10n/app_localizations.dart';
 import 'pages/home_page.dart';
 import 'pages/sign_in_page.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart'; 
+// import 'package:flutter_gen/gen_l10n/app_localizations.dart'; 
+import '../gen_l10n/app_localizations.dart';
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
