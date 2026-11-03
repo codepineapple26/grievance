@@ -355,45 +355,42 @@ class _GrievanceRegistrationPageState
     });
   }
 
-  Future<void> _pickFiles() async {
-    try {
-      final pickedFiles = await FilePicker.pickFiles(
-        type: FileType.custom,
-        allowMultiple: true,
-        allowedExtensions: const ['pdf', 'png', 'jpg', 'jpeg'],
-      );
+ Future<void> _pickFiles() async {
+  try {
+    final List<PlatformFile> pickedFiles = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['pdf', 'png', 'jpg', 'jpeg'],
+    );
 
-      if (pickedFiles.isEmpty) return;
+    if (pickedFiles.isEmpty) return; // User cancelled
 
-      final selectedFiles = <PlatformFile>[
-        ..._files,
-        ...pickedFiles,
-      ];
+    final selectedFiles = <PlatformFile>[
+      ..._files,
+      ...pickedFiles,
+    ];
 
-      var totalBytes = 0;
-      for (final file in selectedFiles) {
+    var totalBytes = 0;
+    for (final file in selectedFiles) {
+      final int? length = await file.length();
+      if (length != null) {
+        totalBytes += length;
+      }
+    }
 
-final int? length = await file.length();
-if (length != null) {
-  totalBytes += length;
+    if (totalBytes > _maxBytes) {
+      _message('All selected documents together must be 20 MB or less.');
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() => _files = selectedFiles);
+  } catch (error, stackTrace) {
+    debugPrint('Picking files failed: $error');
+    debugPrintStack(stackTrace: stackTrace);
+    _message('Could not select files: $error');
+  }
 }
 
-        
-      }
-
-      if (totalBytes > _maxBytes) {
-        _message('All selected documents together must be 20 MB or less.');
-        return;
-      }
-
-      if (!mounted) return;
-      setState(() => _files = selectedFiles);
-    } catch (error, stackTrace) {
-      debugPrint('Picking files failed: $error');
-      debugPrintStack(stackTrace: stackTrace);
-      _message('Could not select files: $error');
-    }
-  }
 
   String _contentType(String name) {
     final lower = name.toLowerCase();
