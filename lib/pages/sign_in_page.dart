@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
 import 'home_page.dart';
+import 'package:citizen_grievance_app/l10n/app_localizations.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({
