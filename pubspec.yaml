@@ -11,6 +11,12 @@ dependencies:
     sdk: flutter
   supabase_flutter: ^2.18.3
   file_picker: ^13.3.2
+  flutter_localizations:
+    sdk: flutter
+  intl: any
+
+  flutter:
+  generate: true
 
 dev_dependencies:
   flutter_test:
