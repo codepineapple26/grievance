@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
+
 import '../services/auth_service.dart';
 import 'home_page.dart';
 
 class SignInPage extends StatefulWidget {
-  const SignInPage({super.key});
+  const SignInPage({
+    super.key,
+    required this.onLocaleChanged,
+  });
 
   final ValueChanged<Locale> onLocaleChanged;
 
-const SignInPage({
-  super.key,
-  required this.onLocaleChanged,
-});
-
-  
   @override
   State<SignInPage> createState() => _SignInPageState();
 }
@@ -47,20 +45,18 @@ class _SignInPageState extends State<SignInPage> {
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
+        MaterialPageRoute<void>(
           builder: (_) => HomePage(
-  userName: userName,
-  onLocaleChanged: widget.onLocaleChanged,
-),
+            userName: userName,
+            onLocaleChanged: widget.onLocaleChanged,
+          ),
         ),
       );
     } catch (error) {
       if (!mounted) return;
 
-      // 🛠️ FIX: Show the ACTUAL error message from Supabase (e.g., "Invalid login credentials")
-      // instead of a generic message that masks a successful pass or a real failure.
       final errorMessage = error.toString().replaceAll('Exception: ', '');
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMessage),
@@ -96,16 +92,16 @@ class _SignInPageState extends State<SignInPage> {
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
-                      labelText: 'Email Address', // Changed from email or phone number since Supabase expects an email
+                      labelText: 'Email Address',
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.email_outlined),
                     ),
-                    // 🛠️ FIX: Strict email regex validation prevents users from entering random plain text usernames
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Enter your email address';
                       }
-                      final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                      final emailRegex =
+                          RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
                       if (!emailRegex.hasMatch(value.trim())) {
                         return 'Enter a valid email address';
                       }
