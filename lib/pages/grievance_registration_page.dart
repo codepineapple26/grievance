@@ -555,7 +555,7 @@ class _GrievanceRegistrationPageState
     return _whiteCard(
       child: DropdownButtonFormField<int>(
         key: ValueKey('$label|$value|$optionIds'),
-         initialValue: _selectedValue,
+         initialValue: _selectedDepartmentId,
         isExpanded: true,
         decoration: InputDecoration(
           labelText: label,
