@@ -67,11 +67,25 @@ class _GrievanceRegistrationPageState
     _loadInitialOptions();
   }
 
-Future<String> _formatFileSize(PlatformFile file) async {
-  final size = (await file.length()) ?? 0;
-  return '${(size / (1024 * 1024)).toStringAsFixed(2)} MB';
-}
-  
+  @override
+  void dispose() {
+    _subject.dispose();
+    _description.dispose();
+    super.dispose();
+  }
+
+  void _message(String text) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(text)),
+    );
+  }
+
+  Future<String> _formatFileSize(PlatformFile file) async {
+    final size = await file.length();
+    return '${(size / (1024 * 1024)).toStringAsFixed(2)} MB';
+  }
+
   Future<void> _loadInitialOptions() async {
     await Future.wait([
       _loadDistricts(),
@@ -84,15 +98,16 @@ Future<String> _formatFileSize(PlatformFile file) async {
       final rows = await _supabase
           .from('districts')
           .select('id, name')
-        //  .eq('is_active', true)
           .order('name');
 
       if (!mounted) return;
       setState(() {
         districts = List<Map<String, dynamic>>.from(rows);
       });
-    } catch (error) {
-      if (mounted) _message('Could not load districts: $error');
+    } catch (error, stackTrace) {
+      debugPrint('Loading districts failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      _message('Could not load districts: $error');
     }
   }
 
@@ -101,15 +116,16 @@ Future<String> _formatFileSize(PlatformFile file) async {
       final rows = await _supabase
           .from('departments')
           .select('id, name')
-      //    .eq('is_active', true)
           .order('name');
 
       if (!mounted) return;
       setState(() {
         departments = List<Map<String, dynamic>>.from(rows);
       });
-    } catch (error) {
-      if (mounted) _message('Could not load departments: $error');
+    } catch (error, stackTrace) {
+      debugPrint('Loading departments failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      _message('Could not load departments: $error');
     }
   }
 
@@ -127,23 +143,32 @@ Future<String> _formatFileSize(PlatformFile file) async {
           .order('name');
 
       return List<Map<String, dynamic>>.from(rows);
-    } catch (error) {
-      if (mounted) _message('Could not load options: $error');
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Loading $table where $parentColumn = $parentId failed: $error',
+      );
+      debugPrintStack(stackTrace: stackTrace);
+      _message('Could not load $table: $error');
       return [];
     }
   }
 
   String _nameFor(List<Map<String, dynamic>> rows, int id) {
-    return rows.firstWhere((row) => row['id'] == id)['name'] as String;
+    for (final row in rows) {
+      final rowId = row['id'];
+      if (rowId is num && rowId.toInt() == id) {
+        return row['name'] as String? ?? '';
+      }
+    }
+    return '';
   }
 
   Future<void> _onDistrictChanged(int? id) async {
     if (id == null) return;
-    final name = _nameFor(districts, id);
 
     setState(() {
       selectedDistrictId = id;
-      selectedDistrictName = name;
+      selectedDistrictName = _nameFor(districts, id);
       selectedTalukId = null;
       selectedTalukName = null;
       selectedGramPanchayatId = null;
@@ -156,17 +181,16 @@ Future<String> _formatFileSize(PlatformFile file) async {
     });
 
     final rows = await loadOptions('taluks', 'district_id', id);
-    if (!mounted) return;
+    if (!mounted || selectedDistrictId != id) return;
     setState(() => taluks = rows);
   }
 
   Future<void> _onTalukChanged(int? id) async {
     if (id == null) return;
-    final name = _nameFor(taluks, id);
 
     setState(() {
       selectedTalukId = id;
-      selectedTalukName = name;
+      selectedTalukName = _nameFor(taluks, id);
       selectedGramPanchayatId = null;
       selectedGramPanchayatName = null;
       selectedVillageId = null;
@@ -176,24 +200,23 @@ Future<String> _formatFileSize(PlatformFile file) async {
     });
 
     final rows = await loadOptions('gram_panchayats', 'taluk_id', id);
-    if (!mounted) return;
+    if (!mounted || selectedTalukId != id) return;
     setState(() => gramPanchayats = rows);
   }
 
   Future<void> _onGramPanchayatChanged(int? id) async {
     if (id == null) return;
-    final name = _nameFor(gramPanchayats, id);
 
     setState(() {
       selectedGramPanchayatId = id;
-      selectedGramPanchayatName = name;
+      selectedGramPanchayatName = _nameFor(gramPanchayats, id);
       selectedVillageId = null;
       selectedVillageName = null;
       villages = [];
     });
 
     final rows = await loadOptions('villages', 'gram_panchayat_id', id);
-    if (!mounted) return;
+    if (!mounted || selectedGramPanchayatId != id) return;
     setState(() => villages = rows);
   }
 
@@ -207,11 +230,10 @@ Future<String> _formatFileSize(PlatformFile file) async {
 
   Future<void> _onDepartmentChanged(int? id) async {
     if (id == null) return;
-    final name = _nameFor(departments, id);
 
     setState(() {
       selectedDepartmentId = id;
-      selectedDepartmentName = name;
+      selectedDepartmentName = _nameFor(departments, id);
       selectedSubDepartmentId = null;
       selectedSubDepartmentName = null;
       selectedServiceId = null;
@@ -230,17 +252,16 @@ Future<String> _formatFileSize(PlatformFile file) async {
     });
 
     final rows = await loadOptions('sub_departments', 'department_id', id);
-    if (!mounted) return;
+    if (!mounted || selectedDepartmentId != id) return;
     setState(() => subDepartments = rows);
   }
 
   Future<void> _onSubDepartmentChanged(int? id) async {
     if (id == null) return;
-    final name = _nameFor(subDepartments, id);
 
     setState(() {
       selectedSubDepartmentId = id;
-      selectedSubDepartmentName = name;
+      selectedSubDepartmentName = _nameFor(subDepartments, id);
       selectedServiceId = null;
       selectedServiceName = null;
       selectedGrievanceTypeId = null;
@@ -256,17 +277,16 @@ Future<String> _formatFileSize(PlatformFile file) async {
     });
 
     final rows = await loadOptions('services', 'sub_department_id', id);
-    if (!mounted) return;
+    if (!mounted || selectedSubDepartmentId != id) return;
     setState(() => services = rows);
   }
 
   Future<void> _onServiceChanged(int? id) async {
     if (id == null) return;
-    final name = _nameFor(services, id);
 
     setState(() {
       selectedServiceId = id;
-      selectedServiceName = name;
+      selectedServiceName = _nameFor(services, id);
       selectedGrievanceTypeId = null;
       selectedGrievanceTypeName = null;
       selectedGrievanceCategoryId = null;
@@ -279,17 +299,16 @@ Future<String> _formatFileSize(PlatformFile file) async {
     });
 
     final rows = await loadOptions('grievance_types', 'service_id', id);
-    if (!mounted) return;
+    if (!mounted || selectedServiceId != id) return;
     setState(() => grievanceTypes = rows);
   }
 
   Future<void> _onGrievanceTypeChanged(int? id) async {
     if (id == null) return;
-    final name = _nameFor(grievanceTypes, id);
 
     setState(() {
       selectedGrievanceTypeId = id;
-      selectedGrievanceTypeName = name;
+      selectedGrievanceTypeName = _nameFor(grievanceTypes, id);
       selectedGrievanceCategoryId = null;
       selectedGrievanceCategoryName = null;
       selectedGrievanceSubCategoryId = null;
@@ -298,18 +317,21 @@ Future<String> _formatFileSize(PlatformFile file) async {
       grievanceSubCategories = [];
     });
 
-    final rows = await loadOptions('grievance_categories', 'grievance_type_id', id);
-    if (!mounted) return;
+    final rows = await loadOptions(
+      'grievance_categories',
+      'grievance_type_id',
+      id,
+    );
+    if (!mounted || selectedGrievanceTypeId != id) return;
     setState(() => grievanceCategories = rows);
   }
 
   Future<void> _onGrievanceCategoryChanged(int? id) async {
     if (id == null) return;
-    final name = _nameFor(grievanceCategories, id);
 
     setState(() {
       selectedGrievanceCategoryId = id;
-      selectedGrievanceCategoryName = name;
+      selectedGrievanceCategoryName = _nameFor(grievanceCategories, id);
       selectedGrievanceSubCategoryId = null;
       selectedGrievanceSubCategoryName = null;
       grievanceSubCategories = [];
@@ -320,7 +342,7 @@ Future<String> _formatFileSize(PlatformFile file) async {
       'grievance_category_id',
       id,
     );
-    if (!mounted) return;
+    if (!mounted || selectedGrievanceCategoryId != id) return;
     setState(() => grievanceSubCategories = rows);
   }
 
@@ -328,77 +350,44 @@ Future<String> _formatFileSize(PlatformFile file) async {
     if (id == null) return;
     setState(() {
       selectedGrievanceSubCategoryId = id;
-      selectedGrievanceSubCategoryName = _nameFor(grievanceSubCategories, id);
+      selectedGrievanceSubCategoryName =
+          _nameFor(grievanceSubCategories, id);
     });
   }
 
-  @override
-  void dispose() {
-    _subject.dispose();
-    _description.dispose();
-    super.dispose();
-  }
-
-  void _message(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(text)),
-    );
-  }
-
-  void _next() {
-    if (_step == 0 && !_agreed) {
-      _message('Please agree to the notice before continuing.');
-      return;
-    }
-
-    if (_step == 1 &&
-        (selectedDistrictId == null || selectedTalukId == null)) {
-      _message('Please select the district and taluk.');
-      return;
-    }
-
-    if (_step == 2 &&
-        (selectedDepartmentId == null ||
-            selectedSubDepartmentId == null ||
-            selectedServiceId == null ||
-            selectedGrievanceTypeId == null ||
-            selectedGrievanceCategoryId == null ||
-            selectedGrievanceSubCategoryId == null ||
-            _subject.text.trim().isEmpty)) {
-      _message('Please complete the grievance selections and subject.');
-      return;
-    }
-
-    setState(() => _step++);
-  }
-
   Future<void> _pickFiles() async {
-  final pickedFiles = await FilePicker.pickFiles(
-    type: FileType.custom,
-    allowedExtensions: const ['pdf', 'png', 'jpg', 'jpeg'],
-  );
+    try {
+      final pickedFiles = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowMultiple: true,
+        allowedExtensions: const ['pdf', 'png', 'jpg', 'jpeg'],
+      );
 
-  if (pickedFiles.isEmpty) return;
+      if (pickedFiles.isEmpty) return;
 
-  final List<PlatformFile> selectedFiles = [
-    ..._files,
-    ...pickedFiles,
-  ];
+      final selectedFiles = <PlatformFile>[
+        ..._files,
+        ...pickedFiles,
+      ];
 
-  var totalBytes = 0;
-for (final file in selectedFiles) {
-  totalBytes += (await file.length()) ?? 0;
-}
+      var totalBytes = 0;
+      for (final file in selectedFiles) {
+        totalBytes += await file.length();
+      }
 
+      if (totalBytes > _maxBytes) {
+        _message('All selected documents together must be 20 MB or less.');
+        return;
+      }
 
-  if (totalBytes > _maxBytes) {
-    _message('All selected documents together must be 20 MB or less.');
-    return;
+      if (!mounted) return;
+      setState(() => _files = selectedFiles);
+    } catch (error, stackTrace) {
+      debugPrint('Picking files failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      _message('Could not select files: $error');
+    }
   }
-
-  setState(() => _files = selectedFiles);
-}
-
 
   String _contentType(String name) {
     final lower = name.toLowerCase();
@@ -425,7 +414,8 @@ for (final file in selectedFiles) {
     try {
       final locationText = [
         'Type: $_locationType',
-        if (selectedDistrictName != null) 'District: $selectedDistrictName',
+        if (selectedDistrictName != null)
+          'District: $selectedDistrictName',
         if (selectedTalukName != null) 'Taluk: $selectedTalukName',
         if (selectedGramPanchayatName != null)
           'Gram Panchayat: $selectedGramPanchayatName',
@@ -435,7 +425,8 @@ for (final file in selectedFiles) {
       final grievance = await _supabase
           .from('grievances')
           .insert({
-            'tracking_id': 'GRV-${DateTime.now().microsecondsSinceEpoch}',
+            'tracking_id':
+                'GRV-${DateTime.now().microsecondsSinceEpoch}',
             'user_id': user.id,
             'department_id': selectedDepartmentId,
             'sub_department_id': selectedSubDepartmentId,
@@ -458,7 +449,7 @@ for (final file in selectedFiles) {
           .select('id')
           .single();
 
-      final grievanceId = grievance['id'] as String;
+      final grievanceId = grievance['id'].toString();
       final attachmentRows = <Map<String, dynamic>>[];
 
       for (final file in _files) {
@@ -469,6 +460,7 @@ for (final file in selectedFiles) {
         final path =
             '${user.id}/${DateTime.now().microsecondsSinceEpoch}_$safeName';
         final bytes = await file.readAsBytes();
+
         await _supabase.storage.from('grievance-files').uploadBinary(
           path,
           bytes,
@@ -508,19 +500,75 @@ for (final file in selectedFiles) {
       );
 
       if (mounted) Navigator.pop(context, true);
-    } catch (error) {
+    } catch (error, stackTrace) {
+      debugPrint('Submitting grievance failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
+
       if (uploadedPaths.isNotEmpty) {
         try {
-          await _supabase.storage.from('grievance-files').remove(uploadedPaths);
-        } catch (_) {
-          // Keep the original submission error as the message.
+          await _supabase.storage
+              .from('grievance-files')
+              .remove(uploadedPaths);
+        } catch (cleanupError) {
+          debugPrint('Attachment cleanup failed: $cleanupError');
         }
       }
 
-      if (mounted) _message('Submission failed: $error');
+      _message('Submission failed: $error');
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
+  }
+
+  Widget _whiteCard({required Widget child}) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
+  Widget _dropdown({
+    required String label,
+    required int? value,
+    required List<Map<String, dynamic>> options,
+    required ValueChanged<int?> onChanged,
+  }) {
+    final optionIds = options.map((row) => row['id']).join(',');
+
+    return _whiteCard(
+      child: DropdownButtonFormField<int>(
+        key: ValueKey('$label|$value|$optionIds'),
+        value: value,
+        isExpanded: true,
+        decoration: InputDecoration(
+          labelText: label,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 8),
+        ),
+        items: options.map((row) {
+          final id = row['id'];
+          return DropdownMenuItem<int>(
+            value: id is num ? id.toInt() : int.parse(id.toString()),
+            child: Text(row['name']?.toString() ?? ''),
+          );
+        }).toList(),
+        onChanged: onChanged,
+      ),
+    );
   }
 
   Widget _textField(
@@ -547,28 +595,6 @@ for (final file in selectedFiles) {
     );
   }
 
-  Widget _dropdown({
-    required String label,
-    required int? value,
-    required List<Map<String, dynamic>> options,
-    required ValueChanged<int?> onChanged,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: DropdownButtonFormField<int>(
-        value: value,
-        decoration: InputDecoration(labelText: label),
-        items: options.map((row) {
-          return DropdownMenuItem<int>(
-            value: row['id'] as int,
-            child: Text(row['name'] as String),
-          );
-        }).toList(),
-        onChanged: onChanged,
-      ),
-    );
-  }
-
   Widget _buildStep() {
     switch (_step) {
       case 0:
@@ -588,8 +614,9 @@ for (final file in selectedFiles) {
             const SizedBox(height: 16),
             CheckboxListTile(
               value: _agreed,
-              onChanged: (value) =>
-                  setState(() => _agreed = value ?? false),
+              onChanged: (value) {
+                setState(() => _agreed = value ?? false);
+              },
               controlAffinity: ListTileControlAffinity.leading,
               title: const Text(
                 'I agree that my grievance does not fall into any of the '
@@ -614,50 +641,39 @@ for (final file in selectedFiles) {
                 return ChoiceChip(
                   label: Text(location),
                   selected: _locationType == location,
-                  onSelected: (_) =>
-                      setState(() => _locationType = location),
+                  onSelected: (_) {
+                    setState(() => _locationType = location);
+                  },
                 );
               }).toList(),
             ),
             const SizedBox(height: 16),
-
             _dropdown(
               label: 'District *',
               value: selectedDistrictId,
               options: districts,
-              onChanged: (id) {
-                _onDistrictChanged(id);
-              },
+              onChanged: _onDistrictChanged,
             ),
-
             if (selectedDistrictId != null)
               _dropdown(
                 label: 'Taluk *',
                 value: selectedTalukId,
                 options: taluks,
-                onChanged: (id) {
-                  _onTalukChanged(id);
-                },
+                onChanged: _onTalukChanged,
               ),
-
             if (selectedTalukId != null)
               _dropdown(
                 label: 'Gram Panchayat',
                 value: selectedGramPanchayatId,
                 options: gramPanchayats,
-                onChanged: (id) {
-                  _onGramPanchayatChanged(id);
-                },
+                onChanged: _onGramPanchayatChanged,
               ),
-
             if (selectedGramPanchayatId != null)
               _dropdown(
                 label: 'Village',
                 value: selectedVillageId,
                 options: villages,
-                onChanged: (id) {
-                  _onVillageChanged(id);
-                },
+                onChanged: _onVillageChanged,
               ),
           ],
         );
@@ -673,66 +689,47 @@ for (final file in selectedFiles) {
             const SizedBox(height: 12),
             const Text('Select the department and grievance details.'),
             const SizedBox(height: 16),
-
             _dropdown(
               label: 'Department *',
               value: selectedDepartmentId,
               options: departments,
-              onChanged: (id) {
-                _onDepartmentChanged(id);
-              },
+              onChanged: _onDepartmentChanged,
             ),
-
             if (selectedDepartmentId != null)
               _dropdown(
                 label: 'Sub Department *',
                 value: selectedSubDepartmentId,
                 options: subDepartments,
-                onChanged: (id) {
-                  _onSubDepartmentChanged(id);
-                },
+                onChanged: _onSubDepartmentChanged,
               ),
-
             if (selectedSubDepartmentId != null)
               _dropdown(
                 label: 'Service *',
                 value: selectedServiceId,
                 options: services,
-                onChanged: (id) {
-                  _onServiceChanged(id);
-                },
+                onChanged: _onServiceChanged,
               ),
-
             if (selectedServiceId != null)
               _dropdown(
                 label: 'Grievance *',
                 value: selectedGrievanceTypeId,
                 options: grievanceTypes,
-                onChanged: (id) {
-                  _onGrievanceTypeChanged(id);
-                },
+                onChanged: _onGrievanceTypeChanged,
               ),
-
             if (selectedGrievanceTypeId != null)
               _dropdown(
                 label: 'Grievance Category *',
                 value: selectedGrievanceCategoryId,
                 options: grievanceCategories,
-                onChanged: (id) {
-                  _onGrievanceCategoryChanged(id);
-                },
+                onChanged: _onGrievanceCategoryChanged,
               ),
-
             if (selectedGrievanceCategoryId != null)
               _dropdown(
                 label: 'Grievance Subcategory *',
                 value: selectedGrievanceSubCategoryId,
                 options: grievanceSubCategories,
-                onChanged: (id) {
-                  _onGrievanceSubCategoryChanged(id);
-                },
+                onChanged: _onGrievanceSubCategoryChanged,
               ),
-
             _textField(
               _subject,
               'Subject *',
@@ -766,14 +763,15 @@ for (final file in selectedFiles) {
                 leading: const Icon(Icons.insert_drive_file),
                 title: Text(file.name),
                 subtitle: FutureBuilder<String>(
-  future: _formatFileSize(file),
-  builder: (context, snapshot) {
-    if (snapshot.connectionState == ConnectionState.waiting) {
-      return const Text('Calculating size…');
-    }
-    return Text(snapshot.data ?? 'Size unavailable');
-  },
-),
+                  future: _formatFileSize(file),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const Text('Calculating size…');
+                    }
+                    return Text(snapshot.data ?? 'Size unavailable');
+                  },
+                ),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete_outline),
                   onPressed: () {
@@ -818,6 +816,35 @@ for (final file in selectedFiles) {
     }
   }
 
+  void _next() {
+    if (_step == 0 && !_agreed) {
+      _message('Please agree to the notice before continuing.');
+      return;
+    }
+
+    if (_step == 1 &&
+        (selectedDistrictId == null || selectedTalukId == null)) {
+      _message('Please select the district and taluk.');
+      return;
+    }
+
+    if (_step == 2 &&
+        (selectedDepartmentId == null ||
+            selectedSubDepartmentId == null ||
+            selectedServiceId == null ||
+            selectedGrievanceTypeId == null ||
+            selectedGrievanceCategoryId == null ||
+            selectedGrievanceSubCategoryId == null ||
+            _subject.text.trim().isEmpty)) {
+      _message('Please complete the grievance selections and subject.');
+      return;
+    }
+
+    if (_step < 4) {
+      setState(() => _step++);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     const stepNames = [
@@ -829,6 +856,7 @@ for (final file in selectedFiles) {
     ];
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF6F7FB),
       appBar: AppBar(
         title: const Text('New Grievance Registration'),
         backgroundColor: _purple,
