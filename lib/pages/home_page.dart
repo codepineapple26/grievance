@@ -51,7 +51,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final isKannada = Localizations.localeOf(context).languageCode == 'kn';
+  //  final isKannada = Localizations.localeOf(context).languageCode == 'kn';
+    final strings = AppLocalizations.of(context)!;
 
     final pages = [
       DashboardTab(
