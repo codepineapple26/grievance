@@ -29,7 +29,18 @@ class GrievanceApp extends StatelessWidget {
           seedColor: const Color(0xFF174A8B),
         ),
       ),
-      home: const SignInPage(),
+      home: () {
+  final user = Supabase.instance.client.auth.currentSession?.user;
+
+  if (user == null) {
+    return const SignInPage();
+  }
+
+  return HomePage(
+    userName: user.email?.split('@').first ?? 'Citizen',
+  );
+}(),
+
     );
   }
 }
