@@ -28,6 +28,7 @@ jobs:
 
       - name: Get dependencies
         run: flutter pub get
+        run: flutter gen-l10n
 
       - name: Build ARM64 release APK
         run: flutter build apk --release --target-platform android-arm64 --split-per-abi
