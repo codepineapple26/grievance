@@ -77,27 +77,7 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
-      appBar: AppBar(
-        title: Text(isKannada ? 'ಮುಖಪುಟ' : 'Home'),
-        elevation: 0,
-        backgroundColor: Colors.white,
-        actions: [
-          PopupMenuButton<Locale>(
-            icon: const Icon(Icons.language, color: Color(0xFF174A8B)),
-            onSelected: widget.onLocaleChanged,
-            itemBuilder: (context) => const [
-              PopupMenuItem(
-                value: Locale('en'),
-                child: Text('English'),
-              ),
-              PopupMenuItem(
-                value: Locale('kn'),
-                child: Text('ಕನ್ನಡ (Kannada)'),
-              ),
-            ],
-          ),
-        ],
-      ),
+      appBar: AppBar(),
       body: SafeArea(child: pages[_selectedIndex]),
       bottomNavigationBar: AppBottomNav(
         currentIndex: _selectedIndex,
