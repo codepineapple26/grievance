@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import '../models/grievance.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class GrievancesTab extends StatefulWidget {
-  const GrievancesTab({super.key, required this.grievances});
-
-  final List<Grievance> grievances;
+  const GrievancesTab({super.key});
 
   @override
   State<GrievancesTab> createState() => _GrievancesTabState();
@@ -12,12 +10,68 @@ class GrievancesTab extends StatefulWidget {
 
 class _GrievancesTabState extends State<GrievancesTab> {
   String _filter = 'All';
+  bool _loading = true;
+  String? _error;
+  List<Map<String, dynamic>> _grievances = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGrievances();
+  }
+
+  Future<void> _loadGrievances() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final client = Supabase.instance.client;
+      final user = client.auth.currentUser;
+
+      if (user == null) {
+        throw StateError('Please sign in to view your grievances.');
+      }
+
+      final data = await client
+          .from('grievances')
+          .select()
+          .eq('user_id', user.id);
+
+      if (!mounted) return;
+
+      setState(() {
+        _grievances = List<Map<String, dynamic>>.from(data);
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _error = error.toString());
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  String _text(Object? value, {String fallback = '—'}) {
+    final text = value?.toString().trim();
+    return text == null || text.isEmpty ? fallback : text;
+  }
+
+  String _status(Map<String, dynamic> grievance) =>
+      _text(grievance['status'], fallback: 'Registered');
 
   @override
   Widget build(BuildContext context) {
     final visibleGrievances = _filter == 'All'
-        ? widget.grievances
-        : widget.grievances.where((g) => g.status == _filter).toList();
+        ? _grievances
+        : _grievances
+            .where(
+              (grievance) =>
+                  _status(grievance).toLowerCase() == _filter.toLowerCase(),
+            )
+            .toList();
 
     return Column(
       children: [
@@ -29,7 +83,7 @@ class _GrievancesTabState extends State<GrievancesTab> {
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
           ),
           child: Text(
-            'My Grievances\n${widget.grievances.length} grievance(s) filed',
+            'My Grievances\n${_grievances.length} grievance(s) filed',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 17,
@@ -57,42 +111,75 @@ class _GrievancesTabState extends State<GrievancesTab> {
           ),
         ),
         Expanded(
-          child: visibleGrievances.isEmpty
-              ? const Center(child: Text('No grievances found'))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: visibleGrievances.length,
-                  itemBuilder: (context, index) {
-                    final grievance = visibleGrievances[index];
-                    return Card(
-                      color: Colors.white,
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: ListTile(
-                        title: Text(
-                          grievance.department,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(
-                          'ID: ${grievance.id}\n'
-                          '${grievance.subject}\n'
-                          'Status: ${grievance.status}',
-                        ),
-                        isThreeLine: true,
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => GrievanceDetailPage(
-                                grievance: grievance,
-                              ),
+          child: _loading
+              ? const Center(child: CircularProgressIndicator())
+              : _error != null
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(_error!, textAlign: TextAlign.center),
+                            const SizedBox(height: 12),
+                            ElevatedButton(
+                              onPressed: _loadGrievances,
+                              child: const Text('Try again'),
                             ),
-                          );
-                        },
+                          ],
+                        ),
                       ),
-                    );
-                  },
-                ),
+                    )
+                  : visibleGrievances.isEmpty
+                      ? const Center(child: Text('No grievances found'))
+                      : RefreshIndicator(
+                          onRefresh: _loadGrievances,
+                          child: ListView.builder(
+                            padding: const EdgeInsets.all(12),
+                            itemCount: visibleGrievances.length,
+                            itemBuilder: (context, index) {
+                              final grievance = visibleGrievances[index];
+                              final id = _text(
+                                grievance['tracking_id'] ?? grievance['id'],
+                              );
+                              final department = _text(
+                                grievance['department_name'] ??
+                                    grievance['department'],
+                                fallback: 'Department ${_text(grievance['department_id'])}',
+                              );
+
+                              return Card(
+                                color: Colors.white,
+                                margin: const EdgeInsets.only(bottom: 12),
+                                child: ListTile(
+                                  title: Text(
+                                    department,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    'ID: $id\n'
+                                    '${_text(grievance['subject'])}\n'
+                                    'Status: ${_status(grievance)}',
+                                  ),
+                                  isThreeLine: true,
+                                  trailing: const Icon(Icons.chevron_right),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute<void>(
+                                        builder: (_) => GrievanceDetailPage(
+                                          grievance: grievance,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                        ),
         ),
       ],
     );
@@ -100,31 +187,28 @@ class _GrievancesTabState extends State<GrievancesTab> {
 }
 
 class GrievanceDetailPage extends StatelessWidget {
-  const GrievanceDetailPage({super.key, required this.grievance});
+  const GrievanceDetailPage({
+    super.key,
+    required this.grievance,
+  });
 
-  final Grievance grievance;
+  final Map<String, dynamic> grievance;
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Grievance details'),
-        backgroundColor: const Color(0xFF7540B5),
-        foregroundColor: Colors.white,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _detail('Grievance ID', grievance.id),
-          _detail('Status', grievance.status),
-          _detail('Department', grievance.department),
-          _detail('Subject', grievance.subject),
-          _detail('Description', grievance.description),
-          _detail('Location', grievance.location),
-          _detail('Created date', _formatDate(grievance.createdAt)),
-        ],
-      ),
-    );
+  String _text(Object? value, {String fallback = '—'}) {
+    final text = value?.toString().trim();
+    return text == null || text.isEmpty ? fallback : text;
+  }
+
+  String _formatDate(Object? value) {
+    final date = DateTime.tryParse(value?.toString() ?? '');
+    if (date == null) return _text(value);
+
+    final localDate = date.toLocal();
+    return '${localDate.day.toString().padLeft(2, '0')}-'
+        '${localDate.month.toString().padLeft(2, '0')}-'
+        '${localDate.year} '
+        '${localDate.hour.toString().padLeft(2, '0')}:'
+        '${localDate.minute.toString().padLeft(2, '0')}';
   }
 
   Widget _detail(String label, String value) {
@@ -136,7 +220,10 @@ class GrievanceDetailPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
+            ),
             const SizedBox(height: 5),
             Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
           ],
@@ -145,9 +232,34 @@ class GrievanceDetailPage extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) =>
-      '${date.day.toString().padLeft(2, '0')}-'
-      '${date.month.toString().padLeft(2, '0')}-${date.year} '
-      '${date.hour.toString().padLeft(2, '0')}:'
-      '${date.minute.toString().padLeft(2, '0')}';
+  @override
+  Widget build(BuildContext context) {
+    final department = grievance['department_name'] ??
+        grievance['department'] ??
+        'Department ${grievance['department_id'] ?? '—'}';
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Grievance details'),
+        backgroundColor: const Color(0xFF7540B5),
+        foregroundColor: Colors.white,
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _detail(
+            'Grievance ID',
+            _text(grievance['tracking_id'] ?? grievance['id']),
+          ),
+          _detail('Status', _text(grievance['status'], fallback: 'Registered')),
+          _detail('Department', department.toString()),
+          _detail('Category', _text(grievance['category'])),
+          _detail('Subject', _text(grievance['subject'])),
+          _detail('Description', _text(grievance['description'])),
+          _detail('Location', _text(grievance['location_text'])),
+          _detail('Created date', _formatDate(grievance['created_at'])),
+        ],
+      ),
+    );
+  }
 }
