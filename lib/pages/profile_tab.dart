@@ -13,6 +13,7 @@ class ProfileTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppLocalizations.of(context)!;
     return ListView(
       padding: EdgeInsets.zero,
       children: [
