@@ -113,18 +113,16 @@ class DashboardTab extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              strings.grievanceStatus,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            TextButton(
-              onPressed: () {},
-              child: Text(strings.viewAll),
-            ),
-          ],
-        ),
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  children: [
+    const Text('Grievance Status'),
+    TextButton(
+      onPressed: widget.onViewAll, // StatefulWidget
+      child: const Text('View All'),
+    ),
+  ],
+)
+
         GridView.count(
           crossAxisCount: 2,
           shrinkWrap: true,
