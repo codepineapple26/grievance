@@ -10,7 +10,7 @@ Future<void> main() async {
 
   await Supabase.initialize(
     url: 'https://mbpwyvnlavauwfwfuylv.supabase.co',
-    publishableKey: 'YOUR_SUPABASE_PUBLISHABLE_KEY',
+    publishableKey: 'sb_publishable_DCE0OoJWP5dIlHZIKZwKJQ_xD-Gje49',
   );
 
   runApp(const GrievanceApp());
