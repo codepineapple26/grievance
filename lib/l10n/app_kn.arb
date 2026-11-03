@@ -1,12 +1,4 @@
 {
-  "@@locale": "kn",
-  "language": "ಭಾಷೆ",
-  "myGrievances": "ನನ್ನ ಅಹವಾಲುಗಳು",
-  "noGrievances": "ಯಾವುದೇ ಅಹವಾಲುಗಳು ಕಂಡುಬಂದಿಲ್ಲ"
-}
-
-// app_kn.arb
-{
   "hello": "ನಮಸ್ಕಾರ, {name}",
   "@hello": {
     "placeholders": {
