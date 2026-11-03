@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'pages/sign_in_page.dart';
+import 'pages/home_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +19,19 @@ final supabase = Supabase.instance.client;
 class GrievanceApp extends StatelessWidget {
   const GrievanceApp({super.key});
 
+  Widget _startPage() {
+  final user = Supabase.instance.client.auth.currentSession?.user;
+
+  if (user == null) {
+    return const SignInPage();
+  }
+
+  return HomePage(
+    userName: user.email?.split('@').first ?? 'Citizen',
+  );
+}
+
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -29,17 +43,7 @@ class GrievanceApp extends StatelessWidget {
           seedColor: const Color(0xFF174A8B),
         ),
       ),
-      home: () {
-  final user = Supabase.instance.client.auth.currentSession?.user;
-
-  if (user == null) {
-    return const SignInPage();
-  }
-
-  return HomePage(
-    userName: user.email?.split('@').first ?? 'Citizen',
-  );
-}(),
+      home: _startPage(),
 
     );
   }
