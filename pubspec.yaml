@@ -15,12 +15,10 @@ dependencies:
     sdk: flutter
   intl: any
 
-  flutter:
-  generate: true
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
 flutter:
   uses-material-design: true
+  generate: true
