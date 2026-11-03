@@ -56,6 +56,8 @@ class _GrievanceAppState extends State<GrievanceApp> {
       locale: _locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
+      home: SignInPage(onLocaleChanged: _updateLocale),
+      
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
