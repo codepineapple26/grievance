@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
+import 'package:citizen_grievance_app/l10n/app_localizations.dart';
 
 class ProfileTab extends StatelessWidget {
   const ProfileTab({
