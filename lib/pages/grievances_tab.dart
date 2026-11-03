@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:citizen_grievance_app/l10n/app_localizations.dart';
 
 class GrievancesTab extends StatefulWidget {
   const GrievancesTab({super.key});
