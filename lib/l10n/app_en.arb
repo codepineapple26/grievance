@@ -4,3 +4,22 @@
   "myGrievances": "My Grievances",
   "noGrievances": "No grievances found"
 }
+
+// app_en.arb
+{
+  "hello": "Hello, {name}",
+  "@hello": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "language": "Language",
+  "newGrievanceRegistration": "New Grievance Registration",
+  "fileNewComplaint": "File a new complaint",
+  "grievanceStatus": "Grievance Status",
+  "viewAll": "View All",
+  "registeredForScrutiny": "Registered and sent for Scrutiny",
+  "inProgress": "In Progress",
+  "closed": "Closed",
+  "resolved": "Resolved"
+}
