@@ -1,12 +1,27 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 class AuthService {
   Future<String> signIn({
     required String email,
     required String password,
   }) async {
-    // Demo only. Connect this method to your backend for real authentication.
-    await Future.delayed(const Duration(milliseconds: 500));
+    final response = await Supabase.instance.client.auth.signInWithPassword(
+      email: email,
+      password: password,
+    );
 
-    final namePart = email.split('@').first;
-    return namePart.isEmpty ? 'User' : namePart;
+    final user = response.user;
+    if (user == null) {
+      throw Exception('Sign-in did not return a user.');
+    }
+
+    final metadata = user.userMetadata;
+    final name = metadata?['full_name'] ?? metadata?['name'];
+
+    if (name is String && name.trim().isNotEmpty) {
+      return name;
+    }
+
+    return user.email?.split('@').first ?? 'User';
   }
 }
