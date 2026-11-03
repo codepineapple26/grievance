@@ -84,7 +84,7 @@ Future<String> _formatFileSize(PlatformFile file) async {
       final rows = await _supabase
           .from('districts')
           .select('id, name')
-          .eq('is_active', true)
+        //  .eq('is_active', true)
           .order('name');
 
       if (!mounted) return;
@@ -101,7 +101,7 @@ Future<String> _formatFileSize(PlatformFile file) async {
       final rows = await _supabase
           .from('departments')
           .select('id, name')
-          .eq('is_active', true)
+      //    .eq('is_active', true)
           .order('name');
 
       if (!mounted) return;
