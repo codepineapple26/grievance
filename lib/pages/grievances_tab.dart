@@ -64,6 +64,7 @@ class _GrievancesTabState extends State<GrievancesTab> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppLocalizations.of(context)!;
     final visibleGrievances = _filter == 'All'
         ? _grievances
         : _grievances
