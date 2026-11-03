@@ -5,6 +5,14 @@ import 'home_page.dart';
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
 
+  final ValueChanged<Locale> onLocaleChanged;
+
+const SignInPage({
+  super.key,
+  required this.onLocaleChanged,
+});
+
+  
   @override
   State<SignInPage> createState() => _SignInPageState();
 }
