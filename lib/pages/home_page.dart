@@ -26,6 +26,14 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   late UserProfile _profile;
 
+  Locale _locale = const Locale('en');
+
+  void _setLocale(Locale locale) {
+    setState(() {
+      _locale = locale;
+    });
+  }
+
   String get userName {
     final user = Supabase.instance.client.auth.currentUser;
     final metadata = user?.userMetadata;
