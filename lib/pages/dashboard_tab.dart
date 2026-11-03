@@ -1,29 +1,34 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
+
 class DashboardTab extends StatelessWidget {
   const DashboardTab({
     super.key,
     required this.userName,
     required this.onNewGrievance,
+    required this.onLocaleChanged,
   });
 
   final String userName;
   final VoidCallback onNewGrievance;
+  final ValueChanged<Locale> onLocaleChanged;
 
   static const purple = Color(0xFF7540B5);
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppLocalizations.of(context)!;
+    final languageCode = Localizations.localeOf(context).languageCode;
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 20),
       children: [
         Text(
-          'Hello, $userName',
+          strings.hello(userName),
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 14),
-
-        // Language selector
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: _cardDecoration(),
@@ -31,16 +36,27 @@ class DashboardTab extends StatelessWidget {
             children: [
               const Icon(Icons.translate, size: 18),
               const SizedBox(width: 8),
-              const Expanded(child: Text('Language', style: TextStyle(fontSize: 12))),
-              _languageButton('English', selected: true),
+              Expanded(
+                child: Text(
+                  strings.language,
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ),
+              _languageButton(
+                'English',
+                selected: languageCode == 'en',
+                onTap: () => onLocaleChanged(const Locale('en')),
+              ),
               const SizedBox(width: 6),
-              _languageButton('ಕನ್ನಡ'),
+              _languageButton(
+                'ಕನ್ನಡ',
+                selected: languageCode == 'kn',
+                onTap: () => onLocaleChanged(const Locale('kn')),
+              ),
             ],
           ),
         ),
         const SizedBox(height: 14),
-
-        // New grievance card
         InkWell(
           onTap: onNewGrievance,
           borderRadius: BorderRadius.circular(18),
@@ -59,33 +75,36 @@ class DashboardTab extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Row(
+            child: Row(
               children: [
-                CircleAvatar(
+                const CircleAvatar(
                   backgroundColor: Color(0xFFFFC94A),
                   child: Icon(Icons.add, color: Colors.white),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'New Grievance Registration',
-                        style: TextStyle(
+                        strings.newGrievanceRegistration,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
-                        'File a new complaint',
-                        style: TextStyle(color: Colors.white70, fontSize: 12),
+                        strings.fileNewComplaint,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                CircleAvatar(
+                const CircleAvatar(
                   backgroundColor: Color(0xFFFFC94A),
                   child: Icon(Icons.arrow_forward, color: Colors.white),
                 ),
@@ -94,15 +113,17 @@ class DashboardTab extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
-
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Grievance Status',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            Text(
+              strings.grievanceStatus,
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            TextButton(onPressed: () {}, child: const Text('View All')),
+            TextButton(
+              onPressed: () {},
+              child: Text(strings.viewAll),
+            ),
           ],
         ),
         GridView.count(
@@ -112,30 +133,30 @@ class DashboardTab extends StatelessWidget {
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
           childAspectRatio: 1.35,
-          children: const [
+          children: [
             _StatusCard(
               icon: Icons.access_time,
               count: '0',
-              label: 'Registered and sent for Scrutiny',
-              color: Color(0xFF4B83D1),
+              label: strings.registeredForScrutiny,
+              color: const Color(0xFF4B83D1),
             ),
             _StatusCard(
               icon: Icons.sync,
               count: '0',
-              label: 'In Progress',
-              color: Color(0xFFD4A51C),
+              label: strings.inProgress,
+              color: const Color(0xFFD4A51C),
             ),
             _StatusCard(
               icon: Icons.inventory_2_outlined,
               count: '0',
-              label: 'Closed',
-              color: Color(0xFF777777),
+              label: strings.closed,
+              color: const Color(0xFF777777),
             ),
             _StatusCard(
               icon: Icons.check_circle_outline,
               count: '3',
-              label: 'Resolved',
-              color: Color(0xFF39A76A),
+              label: strings.resolved,
+              color: const Color(0xFF39A76A),
             ),
           ],
         ),
@@ -143,18 +164,26 @@ class DashboardTab extends StatelessWidget {
     );
   }
 
-  static Widget _languageButton(String label, {bool selected = false}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        color: selected ? purple : const Color(0xFFF0F0F0),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 10,
-          color: selected ? Colors.white : Colors.black87,
+  static Widget _languageButton(
+    String label, {
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: selected ? purple : const Color(0xFFF0F0F0),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            color: selected ? Colors.white : Colors.black87,
+          ),
         ),
       ),
     );
@@ -165,7 +194,11 @@ class DashboardTab extends StatelessWidget {
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
       boxShadow: const [
-        BoxShadow(color: Color(0x12000000), blurRadius: 6, offset: Offset(0, 2)),
+        BoxShadow(
+          color: Color(0x12000000),
+          blurRadius: 6,
+          offset: Offset(0, 2),
+        ),
       ],
     );
   }
@@ -192,7 +225,11 @@ class _StatusCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
-          BoxShadow(color: Color(0x12000000), blurRadius: 6, offset: Offset(0, 2)),
+          BoxShadow(
+            color: Color(0x12000000),
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
         ],
       ),
       child: Column(
