@@ -4,3 +4,22 @@
   "myGrievances": "ನನ್ನ ಅಹವಾಲುಗಳು",
   "noGrievances": "ಯಾವುದೇ ಅಹವಾಲುಗಳು ಕಂಡುಬಂದಿಲ್ಲ"
 }
+
+// app_kn.arb
+{
+  "hello": "ನಮಸ್ಕಾರ, {name}",
+  "@hello": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "language": "ಭಾಷೆ",
+  "newGrievanceRegistration": "ಹೊಸ ಅಹವಾಲು ನೋಂದಣಿ",
+  "fileNewComplaint": "ಹೊಸ ದೂರು ಸಲ್ಲಿಸಿ",
+  "grievanceStatus": "ಅಹವಾಲಿನ ಸ್ಥಿತಿ",
+  "viewAll": "ಎಲ್ಲವನ್ನೂ ನೋಡಿ",
+  "registeredForScrutiny": "ನೋಂದಾಯಿಸಲಾಗಿದೆ ಮತ್ತು ಪರಿಶೀಲನೆಗೆ ಕಳುಹಿಸಲಾಗಿದೆ",
+  "inProgress": "ಪ್ರಗತಿಯಲ್ಲಿದೆ",
+  "closed": "ಮುಚ್ಚಲಾಗಿದೆ",
+  "resolved": "ಪರಿಹರಿಸಲಾಗಿದೆ"
+}
