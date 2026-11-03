@@ -48,7 +48,10 @@ class _SignInPageState extends State<SignInPage> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => HomePage(userName: userName),
+          builder: (_) => HomePage(
+  userName: userName,
+  onLocaleChanged: widget.onLocaleChanged,
+),
         ),
       );
     } catch (error) {
