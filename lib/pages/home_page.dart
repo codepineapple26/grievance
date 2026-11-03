@@ -53,19 +53,21 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
   //  final isKannada = Localizations.localeOf(context).languageCode == 'kn';
     final strings = AppLocalizations.of(context)!;
-
+    final VoidCallback onViewAll;
     final pages = [
       DashboardTab(
-        userName: userName,
-        onLocaleChanged: widget.onLocaleChanged,
-        onNewGrievance: () {
-          Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => const GrievanceRegistrationPage(),
-            ),
-          );
-        },
+  userName: userName,
+  onLocaleChanged: widget.onLocaleChanged,
+  onNewGrievance: () {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const GrievanceRegistrationPage(),
       ),
+    );
+  },
+  onViewAll: () => setState(() => _selectedIndex = 2),
+),
+
       const GrievancesTab(),
       Center(child: Text(isKannada ? 'ಎಚ್ಚರಿಕೆಗಳು' : 'Alerts')),
       ProfileTab(
