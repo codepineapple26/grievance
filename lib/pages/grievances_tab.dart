@@ -235,6 +235,7 @@ class GrievanceDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppLocalizations.of(context)!;
     final department = grievance['department_name'] ??
         grievance['department'] ??
         'Department ${grievance['department_id'] ?? '—'}';
