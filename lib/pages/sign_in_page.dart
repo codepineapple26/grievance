@@ -43,11 +43,18 @@ class _SignInPageState extends State<SignInPage> {
           builder: (_) => HomePage(userName: userName),
         ),
       );
-    } catch (_) {
+    } catch (error) {
       if (!mounted) return;
 
+      // 🛠️ FIX: Show the ACTUAL error message from Supabase (e.g., "Invalid login credentials")
+      // instead of a generic message that masks a successful pass or a real failure.
+      final errorMessage = error.toString().replaceAll('Exception: ', '');
+      
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sign-in failed. Please try again.')),
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red.shade800,
+        ),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -78,13 +85,18 @@ class _SignInPageState extends State<SignInPage> {
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
-                      labelText: 'Email or phone number',
+                      labelText: 'Email Address', // Changed from email or phone number since Supabase expects an email
                       border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.person_outline),
+                      prefixIcon: Icon(Icons.email_outlined),
                     ),
+                    // 🛠️ FIX: Strict email regex validation prevents users from entering random plain text usernames
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Enter your email or phone number';
+                        return 'Enter your email address';
+                      }
+                      final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                      if (!emailRegex.hasMatch(value.trim())) {
+                        return 'Enter a valid email address';
                       }
                       return null;
                     },
@@ -119,7 +131,14 @@ class _SignInPageState extends State<SignInPage> {
                   FilledButton(
                     onPressed: _isLoading ? null : _signIn,
                     child: _isLoading
-                        ? const CircularProgressIndicator()
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
                         : const Text('Sign in'),
                   ),
                 ],
