@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-
-// import '../l10n/app_localizations.dart';
-//import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import '../l10n/app_localizations.dart';
-
+import 'package:citizen_grievance_app/l10n/app_localizations.dart';
 
 class DashboardTab extends StatelessWidget {
   const DashboardTab({
